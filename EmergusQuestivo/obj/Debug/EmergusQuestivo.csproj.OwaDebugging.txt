@@ -1,0 +1,7 @@
+False
+54bcd655-213b-49b9-b5f1-62cc5deaaf5424aadeef-71dc-4d44-bf90-f9fe2715e52c
+{e77e4fce-3f83-4a57-b815-fee7b9060ea5}{0c4b4ecf-faf8-4d75-839a-4dbc0bb6a450}
+{2baba9db-fb73-4d88-8e77-be78bc49bd5e}
+1.0.0.0
+EmergusQuestivo
+_layouts/15/

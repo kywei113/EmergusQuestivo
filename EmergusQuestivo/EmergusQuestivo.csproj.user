@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <GeneratedFeatureId>54bcd655-213b-49b9-b5f1-62cc5deaaf54</GeneratedFeatureId>
+    <GeneratedPackageId>24aadeef-71dc-4d44-bf90-f9fe2715e52c</GeneratedPackageId>
+    <GeneratedModuleId>{e77e4fce-3f83-4a57-b815-fee7b9060ea5}</GeneratedModuleId>
+    <GeneratedListId>{0c4b4ecf-faf8-4d75-839a-4dbc0bb6a450}</GeneratedListId>
+    <GeneratedProductId>{2baba9db-fb73-4d88-8e77-be78bc49bd5e}</GeneratedProductId>
+    <GeneratedAppVersion>1.0.0.0</GeneratedAppVersion>
+    <GeneratedClientSecret>MSFykRQpZNraJE/McLzJL3FTg1eERGDxiQAxXSOFlXA=</GeneratedClientSecret>
+    <OfficeAppStartDocument>EmergusQuestivo.xlsx</OfficeAppStartDocument>
+  </PropertyGroup>
+</Project>
