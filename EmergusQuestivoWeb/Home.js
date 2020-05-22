@@ -51,11 +51,9 @@
                 var outRange = cellColl.items[0];
 
                 for (var i = 0; i < outRange.rowCount; i++) {
-                    
                     for (var j = 0; j < outRange.columnCount; j++) {
                         outRange[i][j].format.columnWidth(20);
                         outRange[i][j].format.rowHeight(20);
-
                     }
                 }
             }).then(ctx.sync());

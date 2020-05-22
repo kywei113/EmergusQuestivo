@@ -1,0 +1,2 @@
+bin\Debug\OfficeAppManifests\EmergusQuestivoManifest.xml
+E:\Git Projects\COET295\EmergusQuestivo\EmergusQuestivo\bin\Debug\EmergusQuestivo.debugapp
