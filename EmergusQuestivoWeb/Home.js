@@ -4,6 +4,26 @@
     var cellToHighlight;
     var messageBanner;
 
+    class room {
+        constructor(tiles, doors, title) {
+            this.tiles = tiles;
+            this.doors = doors;
+            this.title = title;
+        }
+    }
+
+    let startTiles = [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+    ];
+
+    var startRoom = new room(startTiles, [true, true, false, true], "Start Room");
+
     // The initialize function must be run each time a new page is loaded.
     Office.initialize = function (reason) {
         $(document).ready(function () {
@@ -18,7 +38,7 @@
                 $('#button-text').text("weNnoR!");
                 $('#button-desc').text("weNnoR!!!!");
 
-                $('#highlight-button').click(setCellSizes);
+                $('#highlight-button').click(roomRender(startRoom));
                 return;
             }
 
@@ -30,7 +50,7 @@
             //loadSampleData();
 
             // Add a click event handler for the highlight button.
-            $('#highlight-button').click(setCellSizes);
+            $('#highlight-button').click(roomRender(startRoom));
         });
     };
 
@@ -46,25 +66,57 @@
             var internalRange = sheet.getRanges("c3:i9");
             cellRange.format.fill.color = "black";
             internalRange.format.fill.color = "yellow";
+            cellRange.format.columnWidth = 20;
+            cellRange.format.rowHeight = 20;
+
+            
 
             return ctx.sync().then(function () {
-                var outRange = cellColl.items[0];
 
-                for (var i = 0; i < outRange.rowCount; i++) {
-                    for (var j = 0; j < outRange.columnCount; j++) {
-                        outRange[i][j].format.columnWidth(20);
-                        outRange[i][j].format.rowHeight(20);
-                    }
-                }
             }).then(ctx.sync());
         }).catch(errorHandler);
     }
 
     //Render rooms with a 2 cell pad on top and left sides (top left room edge starts at Row 3, Column C)
-    function roomRender() {
+    function roomRender(newRoom) {
         Excel.run(function (ctx) {
+            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+            var cellRange = sheet.getRange("c3:i9");
 
-            return ctx.sync();
+            for (var i = 0; i < cellRange.rowCount; i++) {
+                for (var j = 0; j < cellRange.columnCount; j++) {
+                    switch (newRoom.tiles[i][j]) {
+                        case 0:
+                            cellRange.getCell(i, j).format.color = "brown";
+                            break;
+                        case 1:
+                            cellRange.getCell(i, j).format.color = "blue";
+                            break;
+                        default:
+                            cellRange.getCell(i, j).format.color = "black";
+                            break;
+                    }
+                }
+            }
+
+            return ctx.sync().then(function () {
+                for (var i = 0; i < cellRange.rowCount; i++) {
+                    for (var j = 0; j < cellRange.columnCount; j++) {
+                        switch (newRoom.tiles[i][j]) {
+                            case 0:
+                                cellRange.getCell(i, j).format.color = "brown";
+                                break;
+                            case 1:
+                                cellRange.getCell(i, j).format.color = "blue";
+                                break;
+                            default:
+                                cellRange.getCell(i, j).format.color = "black";
+                                break;
+                        }
+                    }
+                }
+            }).then(ctx.sync);
+                
         }).catch(errorHandler);
     }
 
