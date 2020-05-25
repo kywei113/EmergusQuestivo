@@ -13,13 +13,13 @@
     }
 
     let startTiles = [
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        ['f', 'f', 'f', 'c', 'f', 'f', 'k'],
+        ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
+        ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
+        ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
+        ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
+        ['w', 'f', 'f', 'f', 'f', 'f', 'w'],
+        ['w', 'w', 'w', 'w', 'w', 'w', 'w']
     ];
 
     var startRoom = new room(startTiles, [true, true, false, true], "Start Room");
@@ -34,15 +34,15 @@
             
             // If not using Excel 2016, use fallback logic.
             if (!Office.context.requirements.isSetSupported('ExcelApi', '1.1')) {
-                $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR.");
+                $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (ᚩ)");
                 $('#button-text').text("weNnoR!");
                 $('#button-desc').text("weNnoR!!!!");
 
-                $('#highlight-button').click(roomRender(startRoom));
+                $('#highlight-button').click(roomRender);
                 return;
             }
 
-            $("#template-description").text("Navigate your way through the Wizard weNnoR's realm");
+            $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
             $('#button-text').text("Do the Nothing!");
             $('#button-desc').text("Highlights the largest number.");
 
@@ -50,7 +50,7 @@
             //loadSampleData();
 
             // Add a click event handler for the highlight button.
-            $('#highlight-button').click(roomRender(startRoom));
+            $('#highlight-button').click(roomRender);
         });
     };
 
@@ -58,10 +58,6 @@
         Excel.run(function (ctx) {
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
             var cellRange = sheet.getRanges("a1:k11");
-            cellRange.load("areaCount");
-
-            var cellColl = cellRange.areas;
-            cellColl.load("values, rowCount, columnCount");
 
             var internalRange = sheet.getRanges("c3:i9");
             cellRange.format.fill.color = "black";
@@ -69,48 +65,39 @@
             cellRange.format.columnWidth = 20;
             cellRange.format.rowHeight = 20;
 
-            
-
-            return ctx.sync().then(function () {
-
-            }).then(ctx.sync());
+            return ctx.sync();
         }).catch(errorHandler);
     }
 
     //Render rooms with a 2 cell pad on top and left sides (top left room edge starts at Row 3, Column C)
     function roomRender(newRoom) {
+        newRoom = startRoom;
+
         Excel.run(function (ctx) {
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
             var cellRange = sheet.getRange("c3:i9");
-
-            for (var i = 0; i < cellRange.rowCount; i++) {
-                for (var j = 0; j < cellRange.columnCount; j++) {
-                    switch (newRoom.tiles[i][j]) {
-                        case 0:
-                            cellRange.getCell(i, j).format.color = "brown";
-                            break;
-                        case 1:
-                            cellRange.getCell(i, j).format.color = "blue";
-                            break;
-                        default:
-                            cellRange.getCell(i, j).format.color = "black";
-                            break;
-                    }
-                }
-            }
+            cellRange.load("value, rowCount, columnCount");
 
             return ctx.sync().then(function () {
                 for (var i = 0; i < cellRange.rowCount; i++) {
                     for (var j = 0; j < cellRange.columnCount; j++) {
                         switch (newRoom.tiles[i][j]) {
-                            case 0:
-                                cellRange.getCell(i, j).format.color = "brown";
+                            case 'f':
+                                cellRange.getCell(i, j).format.fill.color = "brown";
                                 break;
-                            case 1:
-                                cellRange.getCell(i, j).format.color = "blue";
+                            case 'w':
+                                cellRange.getCell(i, j).format.fill.color = "blue";
+                                break;
+                            case 'c':
+                                cellRange.getCell(i, j).format.fill.color = "black";
+                                break;
+                            case 'k':
+                                cellRange.getCell(i, j).format.fill.color = "brown";
+                                cellRange.getCell(i, j).value = 'ᚩ';
+                                cellRange.getCell(i, j).font.color = "pink";
                                 break;
                             default:
-                                cellRange.getCell(i, j).format.color = "black";
+                                cellRange.getCell(i, j).format.fill.color = "black";
                                 break;
                         }
                     }
