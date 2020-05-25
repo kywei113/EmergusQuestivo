@@ -18,7 +18,7 @@
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-        ['w', 'f', 'f', 'f', 'f', 'f', 'w'],
+        ['w', 'f', 'f', 'p', 'f', 'f', 'w'],
         ['w', 'w', 'w', 'w', 'w', 'w', 'w']
     ];
 
@@ -64,7 +64,10 @@
             internalRange.format.fill.color = "yellow";
             cellRange.format.columnWidth = 20;
             cellRange.format.rowHeight = 20;
-
+            cellRange.format.horizontalAlignment = "Center";
+            cellRange.format.verticalAlignment = "Center";
+            cellRange.format.font.size = 15;
+            cellRange.format.font.color = "white";
             return ctx.sync();
         }).catch(errorHandler);
     }
@@ -93,8 +96,11 @@
                                 break;
                             case 'k':
                                 cellRange.getCell(i, j).format.fill.color = "brown";
-                                cellRange.getCell(i, j).value = 'ᚩ';
-                                cellRange.getCell(i, j).font.color = "pink";
+                                cellRange.getCell(i, j).values = [['ᚩ']];
+                                break;
+                            case 'p':
+                                cellRange.getCell(i, j).format.fill.color = "brown";
+                                cellRange.getCell(i, j).values = [['☺']];
                                 break;
                             default:
                                 cellRange.getCell(i, j).format.fill.color = "black";

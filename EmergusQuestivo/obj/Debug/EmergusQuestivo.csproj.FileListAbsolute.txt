@@ -1,3 +1,4 @@
 E:\Git Projects\COET295\EmergusQuestivo\EmergusQuestivo\obj\Debug\EmergusQuestivo.csprojAssemblyReference.cache
 D:\Projects\EmergusQuestivoCST230234\EmergusQuestivo\obj\Debug\EmergusQuestivo.csprojAssemblyReference.cache
 D:\Projects\EmergusQuestivoCST230234\EmergusQuestivo\obj\Debug\EmergusQuestivo.csproj.CoreCompileInputs.cache
+E:\Git Projects\COET295\EmergusQuestivoCST230234\EmergusQuestivo\obj\Debug\EmergusQuestivo.csprojAssemblyReference.cache
