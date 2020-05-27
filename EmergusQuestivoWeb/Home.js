@@ -17,13 +17,16 @@
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
         ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-        ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-        ['w', 'f', 'f', 'p', 'f', 'f', 'w'],
+        ['f', 'c', 'p', 'c', 'f', 'c', 'f'],
+        ['w', 'f', 'f', 'f', 'f', 'f', 'w'],
         ['w', 'w', 'w', 'w', 'w', 'w', 'w']
     ];
 
     var startRoom = new room(startTiles, [true, true, false, true], "Start Room");
 
+    //Tracking the player icon's position
+    var playerPos = [0, 0];
+    
     // The initialize function must be run each time a new page is loaded.
     Office.initialize = function (reason) {
         $(document).ready(function () {
@@ -37,20 +40,40 @@
                 $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (ᚩ)");
                 $('#button-text').text("weNnoR!");
                 $('#button-desc').text("weNnoR!!!!");
-
                 $('#highlight-button').click(roomRender);
                 return;
             }
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
-            $('#button-text').text("Do the Nothing!");
+            $('#button-text').text("Show me Potato Salad!");
             $('#button-desc').text("Highlights the largest number.");
+
+            $('#btn-up-text').text("Up");
+            $('#btn-up').click(function () {
+                move('u');
+            });
+
+            $('#btn-down-text').text("Down");
+            $('#btn-down').click(function () {
+                move('d');
+            });
+
+            $('#btn-left-text').text("Left");
+            $('#btn-left').click(function () {
+                move('l');
+            });
+
+            $('#btn-right-text').text("Right");
+            $('#btn-right').click(function () {
+                move('r');
+            });
 
             setCellSizes();
             //loadSampleData();
-
+            
             // Add a click event handler for the highlight button.
             $('#highlight-button').click(roomRender);
+            
         });
     };
 
@@ -96,11 +119,16 @@
                                 break;
                             case 'k':
                                 cellRange.getCell(i, j).format.fill.color = "brown";
-                                cellRange.getCell(i, j).values = [['ᚩ']];
+                                cellRange.getCell(i, j).values = 'ᚩ';
                                 break;
                             case 'p':
                                 cellRange.getCell(i, j).format.fill.color = "brown";
-                                cellRange.getCell(i, j).values = [['☺']];
+                                cellRange.getCell(i, j).values = '☺';
+
+                                //Update player's position
+                                playerPos[0] = i;
+                                playerPos[1] = j;
+                                //showNotification("Position: " + playerPos[0] + ", " + playerPos[1]);
                                 break;
                             default:
                                 cellRange.getCell(i, j).format.fill.color = "black";
@@ -110,6 +138,77 @@
                 }
             }).then(ctx.sync);
                 
+        }).catch(errorHandler);
+    }
+
+    //Function for checking a cell in a given direction, 
+    //and if it's possible to move to the cell, 
+    //move the player icon
+    //and update player position
+    function move(direction) {
+        //showNotification("Dir: " + direction +  " Position: " + playerPos[0] + ", " + playerPos[1]);
+        //Switch for directions
+        switch (direction) {
+            case 'u':
+                if (playerPos[0] > 0) {
+                    checkValidMove(playerPos[0] - 1, playerPos[1]);
+                }
+                break;
+            case 'd':
+                if (playerPos[0] < 6) {
+                    checkValidMove(playerPos[0] + 1, playerPos[1]);
+                }
+                break;
+            case 'l':
+                if (playerPos[1] > 0) {
+                    checkValidMove(playerPos[0], playerPos[1] - 1);
+                }
+                break;
+            case 'r':
+                if (playerPos[1] < 6) {
+                    checkValidMove(playerPos[0], playerPos[1] + 1);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    //Helper function for checking if a given cell is valid for movement
+    function checkValidMove(row, col) {
+        Excel.run(function (ctx) {
+            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+            var cellRange = sheet.getRange("c3:i9");
+            //cellRange.load("format/fill/color");
+            var props = cellRange.getCellProperties({
+                format: {
+                    fill: {
+                        color: true
+                    },
+                },
+            });
+            return ctx.sync().then(function () {
+                //console.log(props.value);
+                console.log(props.value[row][col].format.fill.color == "#A52A2A");
+                if (props.value[row][col].format.fill.color == "#A52A2A") {
+                    movePlayerIcon(row, col);
+                }
+            }).then(ctx.sync);
+        }).catch(errorHandler);
+    }
+
+    //Helper function for moving the player icon and updating the player position
+    function movePlayerIcon(newRow, newCol) {
+        Excel.run(function (ctx) {
+            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+            var cellRange = sheet.getRange("c3:i9");
+
+            return ctx.sync().then(function () {
+                cellRange.getCell(playerPos[0], playerPos[1]).values = '';
+                playerPos[0] = newRow;
+                playerPos[1] = newCol;
+                cellRange.getCell(playerPos[0], playerPos[1]).values = '☺';
+            }).then(ctx.sync);
         }).catch(errorHandler);
     }
 
