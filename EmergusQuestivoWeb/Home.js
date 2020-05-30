@@ -5,10 +5,12 @@
     var messageBanner;
 
     class room {
-        constructor(tiles, doors, title) {
+        constructor(tiles, doors, title, desc, it) {
             this.tiles = tiles;
             this.doors = doors;
             this.title = title;
+            this.description = desc;
+            this.items = it;
         }
     }
 
@@ -26,7 +28,8 @@
 
     //Tracking the player icon's position
     var playerPos = [0, 0];
-    
+    var roomList = [];
+
     // The initialize function must be run each time a new page is loaded.
     Office.initialize = function (reason) {
         $(document).ready(function () {
@@ -69,6 +72,7 @@
             });
 
             setCellSizes();
+            roomList = makeRooms();
             //loadSampleData();
             
             // Add a click event handler for the highlight button.
@@ -267,6 +271,432 @@
                 .then(ctx.sync);
         })
         .catch(errorHandler);
+    }
+
+    function makeRooms() {
+
+        roomList = [];
+
+        /*
+         *  0 = Chasm Tile
+         *  1 = Floor Tile
+         *  2 = Sand tile
+         *  3 = Water tile
+         *  4 = Wall tile
+         */
+
+        let startTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0]
+        ];
+        let startRoomItems = [
+            {
+                "item": '☻',
+                "row": 1,
+                "col": 1
+            },
+            {
+                "item": '☻',
+                "row": 1,
+                "col": 5
+            },
+            {
+                "item": '☻',
+                "row": 3,
+                "col": 1
+            },
+            {
+                "item": '☻',
+                "row": 1,
+                "col": 5
+            }
+        ];
+        let startRoomTitle = "Lobby of Freedom";
+        let startRoomDesc = "Three keys bar this door,\nThree keys, and not one more\nI challenge thee to find them,\nI, the great Wizard weNnoR!";
+        let startRoom = new room(startTiles, [16, -1, 2, -1], startRoomTitle, startRoomDesc, startRoomItems);
+        roomList.push(startRoom);
+
+        let roomTwoFourTiles = [
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0]
+        ];
+        let twoFourItems = [];
+        let twoFourTitle = "Salvation Bridge";
+        let twoFourDesc = "One way leads to terror.\nOne way leads to freedom!";
+        let roomTwoFour = new room(roomTwoFourTiles, [0, -1, 5, -1], twoFourTitle, twoFourDesc, twoFourItems);
+        roomList.push(roomTwoFour);
+
+        let lonelyIslandTiles = [
+            [3, 3, 3, 3, 3, 3, 3],
+            [3, 3, 3, 3, 3, 3, 3],
+            [3, 3, 2, 2, 2, 3, 3],
+            [3, 3, 2, 2, 2, 3, 2],
+            [3, 3, 2, 2, 2, 3, 3],
+            [3, 3, 3, 3, 3, 3, 3],
+            [3, 3, 3, 3, 3, 3, 3],
+        ];
+        let lonelyIslandItems = [
+            {
+                "item": 'F',
+                "row": 3,
+                "col": 3
+            }
+        ];
+        let lonelyIslandTitle = "Lo'n Lee Island";
+        let lonelyIslandDesc = "Save the key from its lonely perch";
+        let lonelyIslandRoom = new room(lonelyIslandTiles, [-1, 3, -1, -1], lonelyIslandTitle, lonelyIslandDesc, lonelyIslandItems);
+        roomList.push(lonelyIslandRoom);
+
+        let tRoomTiles = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [2, 2, 1, 1, 1, 1, 1],
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0]
+        ];
+        let tRoomItems = [];
+        let tRoomTitle = "Intersection of M'ist Urtee";
+        let tRoomDesc = "I pity the fool that goes the wrong way!";
+        let tRoom = new room(tRoomTiles, [-1, 4, 6, 2], tRoomTitle, tRoomDesc, tRoomItems);
+        roomList.push(tRoom);
+
+        let windyRoomTiles = [
+            [1, 1, 1, 3, 1, 1, 1],
+            [1, 3, 1, 3, 1, 3, 1],
+            [1, 3, 1, 3, 1, 3, 1],
+            [1, 3, 1, 3, 1, 3, 1],
+            [1, 3, 1, 3, 1, 3, 1],
+            [1, 3, 1, 3, 1, 3, 1],
+            [3, 3, 1, 1, 1, 3, 3]
+        ];
+        let windyRoomItems = [];
+        let windyRoomTitle = "Windig Zimmer";
+        let windyRoomDesc = "Diese Zimmer ist sehr kurvenrich";
+        let windyRoom = new room(windyRoomTiles, [-1, 5, -1, 3], windyRoomTitle, windyRoomDesc, windyRoomItems);
+        roomList.push(windyRoom);
+
+        let lungRoomTiles = [
+            [1, 1, 1, 1, 1, 1 ,1],
+            [1, 1, 0, 0, 0, 1, 1],
+            [1, 1, 0, 0, 0, 1, 1],
+            [1, 1, 0, 1, 1, 1, 1],
+            [1, 1, 0, 0, 0, 1, 1],
+            [1, 1, 0, 0, 0, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        let lungRoomItems = [];
+        let lungRoomTitle = "Breathing Room";
+        let lungRoomDesc = "";
+        let lungRoom = new room(lungRoomTiles, [1, -1, 8, 4], lungRoomTitle, lungRoomDesc, lungRoomItems);
+        roomList.push(lungRoom);
+
+        let bedRoomTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 4, 1, 4, 1, 1],
+            [4, 4, 4, 1, 4, 4, 4],
+            [4, 4, 4, 1, 4, 4, 4],
+            [4, 4, 4, 1, 4, 4, 4],
+            [1, 1, 4, 1, 4, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1]
+        ];
+        let bedRoomItems = [
+            {
+                "item": '∩',
+                "row": 0,
+                "col": 0
+            },
+            {
+                "item": '∩',
+                "row": 0,
+                "col": 6
+            },
+            {
+                "item": '∩',
+                "row": 6,
+                "col": 0
+            },
+            {
+                "item": '∩',
+                "row": 6,
+                "col": 6
+            }
+        ];
+        let bedRoomTitle = ""; //Need a name
+        let bedRoomDesc = "";
+        let bedRoom = new room(bedRoomTiles, [3, -1, 12, -1], bedRoomTitle, bedRoomDesc, bedRoomItems);
+        roomList.push(bedRoom);
+
+        let wennorTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+        ];
+        let wennorItems = [
+            {
+                "item": 'i',
+                "row": 0,
+                "col": 0
+            },
+            {
+                "item": 'i',
+                "row": 0,
+                "col": 6
+            },
+            {
+                "item": '☺',
+                "row": 1,
+                "col": 1
+            },
+            {
+                "item": '☺',
+                "row": 1,
+                "col": 3
+            },
+            {
+                "item": '☺',
+                "row": 1,
+                "col": 5
+            }, {
+                "item": '╤',
+                "row": 2,
+                "col": 1
+            },
+            {
+                "item": '╤',
+                "row": 2,
+                "col": 3
+            },
+            {
+                "item": '╤',
+                "row": 2,
+                "col": 5
+            },
+            {
+                "item": '☺',
+                "row": 3,
+                "col": 1
+            },
+            {
+                "item": '☺',
+                "row": 3,
+                "col": 3
+            },
+            {
+                "item": '☺',
+                "row": 3,
+                "col": 5
+            }, {
+                "item": '╤',
+                "row": 4,
+                "col": 1
+            },
+            {
+                "item": '╤',
+                "row": 4,
+                "col": 3
+            },
+            {
+                "item": '╤',
+                "row": 4,
+                "col": 5
+            },
+            {
+                "item": 'W',
+                "row": 6,
+                "col": 3
+            }
+        ];
+        let wennorTitle = "weNnoR's Auditorium";
+        let wennorDesc = "Tsc fo daeh eht si weNnoR!";
+        let wennorRoom = new room(wennorTiles, [4, -1, -1, -1], wennorTitle, wennorDesc, wennorItems);
+        roomList.push(wennorRoom);
+
+        let cornersTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 4, 4, 1, 4, 4, 1],
+            [1, 4, 1, 1, 1, 4, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 4, 1, 1, 1, 4, 1],
+            [1, 4, 4, 1, 4, 4, 1],
+            [1, 1, 1, 1, 1, 1, 1]
+        ];
+        let cornersRoomItems = [
+            {
+                "items": 'i',
+                "row": 2,
+                "col": 2
+            },
+            {
+                "items": 'i',
+                "row": 2,
+                "col": 4
+            },
+            {
+                "items": 'i',
+                "row": 4,
+                "col": 2
+            },
+            {
+                "items": 'i',
+                "row": 4,
+                "col": 4
+            }
+        ];
+        let cornersRoomTitle = "Corners Room"; //MORE PUNS!
+        let cornersRoomDesc = "";
+        var cornersRoom = new room(cornersTiles, [5, 9, 14, -1], cornersRoomTitle, cornersRoomDesc, cornersRoomItems);
+        roomList.push(cornersRoom);
+
+        let lakeTiles = [
+            [1, 1, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 3, 1],
+            [1, 1, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 3, 3]
+        ];
+        let lakeItems = [];
+        let lakeTitle = "Lac du Lac"; //Maybe keep this one?
+        let lakeDesc = "Moisture is the essence of wetness.";
+        let lakeRoom = new room(lakeTiles, [-1, 10, -1, 8], lakeTitle, lakeDesc, lakeItems);
+        roomList.push(lakeRoom);
+
+        let roundRoomTiles = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0],
+            [0, 1, 1, 0, 1, 1, 0],
+            [1, 1, 0, 0, 0, 1, 1],
+            [0, 1, 1, 0, 1, 1, 0],
+            [0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0]
+        ];
+        let roundItems = [];
+        let roundTitle = "E Pluribus Anus"; //Temp Name
+        let roundDesc = "";
+        let roundRoom = new room(roundTiles, [-1, -1, -1, 9], roundTitle, roundDesc, roundItems);
+        roomList.push(roundRoom);
+
+        let commaRoomTiles = [
+            [0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 1],
+            [1, 1, 0, 1, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 0, 1, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 1]
+        ];
+        let commaItems = [
+            {
+                "item": '/',
+                "row": 1,
+                "col": 3
+            },
+            {
+                "item": '≡',
+                "row": 3,
+                "col": 0
+            },
+            {
+                "item": '/',
+                "row": 5,
+                "col": 3
+            }
+        ];
+        let commaTitle = "Tomb of O'xf-Ord";
+        let commaDesc = "";
+        let commaRoom = new room(commaRoomTiles, [-1, 12, -1, -1], commaTitle, commaDesc, commaItems);
+        roomList.push(commaRoom);
+
+        let skullTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 1, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1],
+            [1, 1, 0, 1, 0, 1, 1],
+            [0, 1, 1, 1, 1, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0]
+        ];
+        let skullItems = [];
+        let skullTitle = "Kingdom of the Crystal Skull"; //Temp name
+        let skullDesc = "";
+        let skullRoom = new room(skullTiles, [6, 13, -1, 11], skullTitle, skullDesc, skullItems);
+
+        let bunnyEarTiles = [
+            [1, 1, 1, 0, 1, 1, 1],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [0, 1, 1, 1, 1, 1, 0]
+        ];
+        let bunnyItems = [];
+        let bunnyTitle = "Hoppy Brewery"; //Temp name
+        let bunnyDesc = "";
+        let bunnyRoom = new room(bunnyEarTiles, [-1, 14, 15, 12], bunnyTitle, bunnyDesc, bunnyItems);
+        roomList.push(bunnyRoom);
+
+        let torchIslandTiles = [
+            [3, 3, 1, 1, 1, 3, 3],
+            [3, 3, 1, 1, 1, 3, 3],
+            [3, 3, 3, 3, 3, 3, 3],
+            [1, 1, 3, 3, 3, 1, 1],
+            [3, 3, 3, 3, 3, 3, 3],
+            [3, 3, 1, 1, 1, 3, 3],
+            [3, 3, 1, 1, 1, 3, 3]
+        ];
+        let torchIslandItems = [
+            {
+                "item": 'i',
+                "row": 6,
+                "col": 3
+            }
+        ];
+        let torchIslandTitle = "Torch Island";
+        let torchIslandDesc = "";
+        let torchIslandRoom = new room(bunnyEarTiles, [-1, 14, 15, 12], torchIslandTitle, torchIslandDesc, torchIslandItems);
+        roomList.push(torchIslandRoom);
+
+        let snorkelTiles = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 3, 3, 3, 3, 3, 1],
+            [1, 3, 3, 3, 3, 3, 1],
+            [1, 3, 3, 3, 3, 3, 1],
+            [1, 3, 3, 3, 3, 3, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [0, 0, 1, 1, 1, 0, 0]
+        ];
+        let snorkelItems = [
+            {
+                "item": 'J',
+                "row": 6,
+                "col": 3
+            }
+        ];
+        let snorkelTitle = "Sanctuary of Snor'Kel";
+        let snorkelDesc = "";
+        let snorkelRoom = new room(snorkelTiles, [13, -1, -1, -1], snorkelTitle, snorkelDesc, snorkelItems);
+        roomList.push(snorkelRoom);
+
+        return roomList;
     }
 
     function displaySelectedCells() {
