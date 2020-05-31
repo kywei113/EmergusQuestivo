@@ -23,6 +23,11 @@
     //Tracks the current active room
     var currentRoom = null;
 
+    //Array of inventory values
+    var inventory = [];
+
+    var hidden = false;
+
     // The initialize function must be run each time a new page is loaded.
     Office.initialize = function (reason) {
         $(document).ready(function () {
@@ -45,10 +50,10 @@
             //loadSampleData();
             currentRoom = roomList[0];
             moveRoom(currentRoom);
+            hidden = false;
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
-            $('#button-text').text("Show me Potato Salad!");
-            $('#button-desc').text("Highlights the largest number.");
+            $('#btn-boss-text').text("Something something boss");
 
             $('#btn-up-text').text("Up");
             $('#btn-up').click(function () {
@@ -70,28 +75,64 @@
                 move('r', currentRoom);
             });
 
+            $('#controlDiv').css("display", "flex");
+            $('#controlDiv').css("flex-direction", "column");
+            $('#controlDiv').css("align-items", "center");
+            $('#controlDiv > div > button').css("padding", "0.25em");
+            $('#controlDiv > div > button').css("margin", "0.25em");
+
             // Add a click event handler for the highlight button.
-            $('#highlight-button').click(roomRender);
+            $('#btn-boss').click(function ()
+            {
+                Excel.run(function (ctx)
+                {
+                    hidden = !hidden;
+                    var sheets = ctx.workbook.worksheets;
+                    if (hidden)
+                    {
+                        sheets.add("WORK");
+
+                        var currentSheet = ctx.workbook.worksheets.getActiveWorksheet();
+                        currentSheet.activate();
+                        currentSheet.visibility = Excel.SheetVisibility.hidden
+                    }
+                    else
+                    {
+                        var gameSheet = ctx.workbook.worksheets.getItem(currentRoom.title);
+                        gameSheet.visibility = Excel.SheetVisibility.visible;
+                        gameSheet.activate();
+                        ctx.workbook.worksheets.getItem("WORK").delete();
+                    }
+
+                    return ctx.sync();
+                }).catch(errorHandler);
+            });
             
         });
     };
 
     //Changing the current room.
     function moveRoom(newRoom) {
-        Excel.run(function (ctx) {
-            var currentSheet = ctx.workbook.worksheets.getActiveWorksheet();
+        Excel.run(function (ctx)
+        {
 
             var sheets = ctx.workbook.worksheets;
-            var newSheet = sheets.add(newRoom.title);
+            //var newSheet = sheets.add(newRoom.title);
             sheets.load("items/name");
-            newSheet.activate();
-            currentSheet.delete();
+            var currentSheet = ctx.workbook.worksheets.getActiveWorksheet();
+            currentSheet.load("name");
+            //newSheet.activate();
+            //currentSheet.delete();
             setCellSizes();
-            roomRender(newRoom);
-            currentRoom = newRoom;
 
-            return ctx.sync();
-        });
+
+            return ctx.sync().then(function ()
+            {
+                currentSheet.name = newRoom.title;
+                roomRender(newRoom);
+                currentRoom = newRoom;
+            });
+        }).catch(errorHandler);
     }
 
     // Resizes the cells of the play area so that they are (more or less) square.
@@ -113,26 +154,25 @@
         }).catch(errorHandler);
     }
 
-    function populateItems(newRoom)
+    function populateItems(currentRoom)
     {
-        console.log(newRoom);
-        Excel.run(function (ctx)
+        if (currentRoom.items.length > 0)
         {
-            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-            var cellRange = sheet.getRange("c3:i9");
-            cellRange.load("value");
-
-            return ctx.sync(newRoom).then(function (newRoom)
+            Excel.run(function (ctx)
             {
-                console.log(newRoom.items);
-                newRoom.items.forEach(function (itemEntry)
+                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+                var cellRange = sheet.getRange("c3:i9");
+                cellRange.load("value");
+
+                return ctx.sync(currentRoom).then(function (currentRoom)
                 {
-                    console.log(itemEntry.row + ',' + itemEntry.col);
-                    console.log(cellRange.getCell(itemEntry.row, itemEntry.col));
-                    cellRange.getCell(itemEntry.row, itemEntry.col).values = itemEntry.item;
-                });
-            }).then(ctx.sync);
-        }).catch(errorHandler);
+                    currentRoom.items.forEach(function (itemEntry)
+                    {
+                        cellRange.getCell(itemEntry.row, itemEntry.col).values = itemEntry.item;
+                    });
+                }).then(ctx.sync);
+            }).catch(errorHandler);
+        }
     }
 
     //Render rooms with a 2 cell pad on top and left sides (top left room edge starts at Row 3, Column C)
@@ -141,6 +181,9 @@
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
             var cellRange = sheet.getRange("b2:j10");
             cellRange.load("value, rowCount, columnCount");
+
+            var itemRange = sheet.getRange("c3:i9");
+            itemRange.load("value");
 
             return ctx.sync().then(function () {
                 for (var i = 0; i < cellRange.rowCount; i++) {
@@ -184,9 +227,18 @@
                     }
                 }
 
+                //Populate items
+                if (newRoom.items.length > 0)
+                {
+                    newRoom.items.forEach(function (itemEntry)
+                    {
+                        itemRange.getCell(itemEntry.row, itemEntry.col).values = itemEntry.item;
+                    });
+                }
+
                 //Display the player
                 cellRange.getCell(playerPos[0], playerPos[1]).values = '☺';
-            }).then(populateItems(newRoom)).then(ctx.sync);
+            }).then(ctx.sync);
                 
         }).catch(errorHandler);
     }
@@ -202,28 +254,24 @@
             case 'u':
                 if (playerPos[0] > 0) {
                     newPos = [playerPos[0] - 1, playerPos[1]];
-                    //playerPos = [7, 4];
                     doorVal = 0;
                 }
                 break;
             case 'd':
                 if (playerPos[0] < 8) {
                     newPos = [playerPos[0] + 1, playerPos[1]];
-                    //playerPos = [1, 4];
                     doorVal = 2;
                 }
                 break;
             case 'l':
                 if (playerPos[1] > 0) {
                     newPos = [playerPos[0], playerPos[1] - 1];
-                    //playerPos = [4, 1];
                     doorVal = 3;
                 }
                 break;
             case 'r':
                 if (playerPos[1] < 8) {
                     newPos = [playerPos[0], playerPos[1] + 1];
-                    //playerPos = [4, 7];
                     doorVal = 1;
                 }
                 break;
@@ -243,19 +291,30 @@
             });
 
             return ctx.sync()
-                .then(function () {
-                    if (props.value[newPos[0]][newPos[1]].format.fill.color == "#D3D3D3" || props.value[newPos[0]][newPos[1]].format.fill.color == "#FAEBD7" || props.value[newPos[0]][newPos[1]].format.fill.color == "#1E90FF") {
-                        action = 0;
-                    } else if (props.value[newPos[0]][newPos[1]].format.fill.color == "#FFFF00") {
-                        action = 1;
-                    }
-
+                .then(function ()
+                {
+                    //var cell = cellRange.getCell(newPos[0], newPos[1]);
+                    //console.log(cell.value);
+                    //if (cell.value != null && cell.value != '')
+                    //{
+                    //    action = 2;
+                    //}
+                    //else
+                    //{
+                        if (props.value[newPos[0]][newPos[1]].format.fill.color == "#D3D3D3" || props.value[newPos[0]][newPos[1]].format.fill.color == "#FAEBD7" || props.value[newPos[0]][newPos[1]].format.fill.color == "#1E90FF")
+                        {
+                            action = 0;
+                        } else if (props.value[newPos[0]][newPos[1]].format.fill.color == "#FFFF00")
+                        {
+                            action = 1;
+                        }
+                    //}
+                        
                     switch (action) {
                         case 0:
                             movePlayerIcon(newPos[0], newPos[1]);
                             break;
                         case 1:
-                            showNotification("Error", action + "");
                             moveRoom(roomList[currentRoom.doors[doorVal]]);
                             switch (doorVal) {
                                 case 0:
@@ -272,6 +331,9 @@
                                     break;
                             }
                             break;
+                        case 2:
+                            interact(cell.values);
+                            break;
                         default:
                             showNotification("Error", newPos[0] + " " + newPos[1] + "\n" + action);
                             break;
@@ -279,6 +341,43 @@
                 })
                 .then(ctx.sync);
         });
+    }
+
+    function interact(item)
+    {
+        let sDesc = "";
+
+        switch (item)
+        {
+            case '☺':
+                sDesc = "An aspiring wizard who looks terribly stressed and sleep deprived.";
+                break;
+            case '☻':
+                sDesc = "A stone statue of an older wizard clothed in long robes.";
+                break;
+            case 'i':
+                sDesc = "A wooden torch with a bright flame illuminating the surrounding area";
+                break;
+            case 'F':
+                sDesc = "A heavy iron key with strange markings engraved into it";
+                break;
+            case 'J':
+                sDesc = "A set of goggles and a long not-plastic tube with a seal around one end. This would be useful for breathing underwater if you could swim";
+                break;
+            case '╤':
+                sDesc = "Long, grey, and covered in drawings. Your standard classroom table";
+                break;
+            case 'W':
+                sDesc = "A tall, bespectacled man wearing grey robes. This must be Grand Wizard weNnoR";
+                break;
+            case '∩':
+                sDesc = "A wooden bed. It's not naptime yet!"
+                break;
+            default:
+                break;
+        }
+
+        $('#descriptionText').text(sDesc);
     }
 
     //Helper function for moving the player icon and updating the player position
@@ -605,22 +704,22 @@
         ];
         let cornersRoomItems = [
             {
-                "items": 'i',
+                "item": 'i',
                 "row": 2,
                 "col": 2
             },
             {
-                "items": 'i',
+                "item": 'i',
                 "row": 2,
                 "col": 4
             },
             {
-                "items": 'i',
+                "item": 'i',
                 "row": 4,
                 "col": 2
             },
             {
-                "items": 'i',
+                "item": 'i',
                 "row": 4,
                 "col": 4
             }
@@ -658,7 +757,13 @@
             [4, 0, 0, 0, 0, 0, 0, 0, 4],
             [4, 4, 4, 4, 4, 4, 4, 4, 4],
         ];
-        let roundItems = [];
+        let roundItems = [
+            {
+                "item": 'F',
+                "row": 3,
+                "col": 6
+            }
+        ];
         let roundTitle = "E Pluribus Anus"; //Temp Name
         let roundDesc = "";
         let roundRoom = new room(roundRoomTiles, [-1, -1, -1, 9], roundTitle, roundDesc, roundItems);
