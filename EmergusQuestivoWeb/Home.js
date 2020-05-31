@@ -29,6 +29,7 @@
     //Tracking the player icon's position
     var playerPos = [3, 4];
     var roomList = [];
+    var currentRoom = null;
 
     // The initialize function must be run each time a new page is loaded.
     Office.initialize = function (reason) {
@@ -47,36 +48,37 @@
                 return;
             }
 
+            //setCellSizes();
+            roomList = makeRooms();
+            //loadSampleData();
+            currentRoom = roomList[0];
+            moveRoom(currentRoom);
+            //Set player location
+
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
             $('#button-text').text("Show me Potato Salad!");
             $('#button-desc').text("Highlights the largest number.");
 
             $('#btn-up-text').text("Up");
             $('#btn-up').click(function () {
-                move('u');
+                move('u', currentRoom);
             });
 
             $('#btn-down-text').text("Down");
             $('#btn-down').click(function () {
-                move('d');
+                move('d', currentRoom);
             });
 
             $('#btn-left-text').text("Left");
             $('#btn-left').click(function () {
-                move('l');
+                move('l', currentRoom);
             });
 
             $('#btn-right-text').text("Right");
             $('#btn-right').click(function () {
-                move('r');
+                move('r', currentRoom);
             });
 
-            //setCellSizes();
-            roomList = makeRooms();
-            //loadSampleData();
-            moveRoom(roomList[0]);
-            //Set player location
-            
             // Add a click event handler for the highlight button.
             $('#highlight-button').click(roomRender);
             
@@ -95,6 +97,7 @@
             currentSheet.delete();
             setCellSizes();
             roomRender(newRoom);
+            currentRoom = newRoom;
 
             return ctx.sync();
             //return context.sync()
@@ -163,13 +166,13 @@
                                 cellRange.getCell(i, j).format.fill.color = "Black";
                                 break;
                             case 1:
-                                cellRange.getCell(i, j).format.fill.color = "LightGrey";
+                                cellRange.getCell(i, j).format.fill.color = "LightGrey"; //#D3D3D3
                                 break;
                             case 2:
-                                cellRange.getCell(i, j).fromat.fill.color = "AntiqueWhite";
+                                cellRange.getCell(i, j).format.fill.color = "AntiqueWhite"; //#FAEBD7
                                 break;
                             case 3:
-                                cellRange.getCell(i, j).format.fill.color = "DodgerBlue";
+                                cellRange.getCell(i, j).format.fill.color = "DodgerBlue"; //#1E90FF
                                 break;
                             case 4:
                                 cellRange.getCell(i, j).format.fill.color = "SaddleBrown"; //#8B4513
@@ -204,107 +207,91 @@
         }).catch(errorHandler);
     }
 
-    //Function for checking a cell in a given direction, 
-    //and if it's possible to move to the cell, 
-    //move the player icon
-    //and update player position
     function move(direction, currentRoom) {
-        //showNotification("Dir: " + direction +  " Position: " + playerPos[0] + ", " + playerPos[1]);
-        //Switch for directions
+        var newPos = [-1, -1];
+        var doorVal = -1;
+
         switch (direction) {
             case 'u':
                 if (playerPos[0] > 0) {
-                    //checkValidMove(playerPos[0] - 1, playerPos[1]);
-                    switch (checkValidMove(playerPos[0] - 1, playerPos[1])) {
-                        case 0:
-                            movePlayerIcon(playerPos[0] - 1, playerPos[1]);
-                            break;
-                        case 1:
-                            moveRoom(roomList[currentRoom.doors[0]]);
-                            break;
-                        default:
-                            break;
-                    }
+                    newPos = [playerPos[0] - 1, playerPos[1]];
+                    //playerPos = [7, 4];
+                    doorVal = 0;
                 }
                 break;
             case 'd':
                 if (playerPos[0] < 8) {
-                    switch (checkValidMove(playerPos[0] + 1, playerPos[1])) {
-                        case 0:
-                            movePlayerIcon(playerPos[0] + 1, playerPos[1]);
-                            break;
-                        case 1:
-                            moveRoom(roomList[currentRoom.doors[2]]);
-                            break;
-                        default:
-                            break;
-                    }
+                    newPos = [playerPos[0] + 1, playerPos[1]];
+                    //playerPos = [1, 4];
+                    doorVal = 2;
                 }
                 break;
             case 'l':
                 if (playerPos[1] > 0) {
-                    switch (checkValidMove(playerPos[0], playerPos[1] - 1)) {
-                        case 0:
-                            movePlayerIcon(playerPos[0], playerPos[1] - 1);
-                            break;
-                        case 1:
-                            moveRoom(roomList[currentRoom.doors[3]]);
-                            break;
-                        default:
-                            break;
-                    }
+                    newPos = [playerPos[0], playerPos[1] - 1];
+                    //playerPos = [4, 1];
+                    doorVal = 3;
                 }
                 break;
             case 'r':
                 if (playerPos[1] < 8) {
-                    switch (checkValidMove(playerPos[0], playerPos[1] + 1)) {
-                        case 0:
-                            movePlayerIcon(playerPos[0], playerPos[1] + 1);
-                            break;
-                        case 1:
-                            moveRoom(roomList[currentRoom.doors[1]]);
-                            break;
-                        default:
-                            break;
-                    }
+                    newPos = [playerPos[0], playerPos[1] + 1];
+                    //playerPos = [4, 7];
+                    doorVal = 1;
                 }
                 break;
             default:
                 break;
         }
-    }
-
-    //Helper function for checking if a given cell is valid for movement
-    function checkValidMove(row, col) {
-        var rVal = -1;
-
         Excel.run(function (ctx) {
-            //var rVal = -1;
+            var action = -1;
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
             var cellRange = sheet.getRange("b2:j10");
-            //cellRange.load("format/fill/color");
             var props = cellRange.getCellProperties({
                 format: {
                     fill: {
                         color: true
-                    },
-                },
-            });
-            return ctx.sync().then(function () {
-                //console.log(props.value);
-                console.log(props.value[row][col].format.fill.color == "#A52A2A");
-                if (props.value[row][col].format.fill.color == "#D3D3D3") {
-                    //movePlayerIcon(row, col);
-                    rVal = 0;
-                } else if (props.value[row][col].format.fill.color == "#FFFF00") {
-                    rVal = 1;
+                    }
                 }
+            });
 
-                return rVal;
-            }).then(ctx.sync);
-        }).catch(errorHandler);
+            return ctx.sync()
+                .then(function () {
+                    if (props.value[newPos[0]][newPos[1]].format.fill.color == "#D3D3D3" || props.value[newPos[0]][newPos[1]].format.fill.color == "#FAEBD7" || props.value[newPos[0]][newPos[1]].format.fill.color == "#1E90FF") {
+                        action = 0;
+                    } else if (props.value[newPos[0]][newPos[1]].format.fill.color == "#FFFF00") {
+                        action = 1;
+                    }
 
-        return rVal;
+                    switch (action) {
+                        case 0:
+                            movePlayerIcon(newPos[0], newPos[1]);
+                            break;
+                        case 1:
+                            showNotification("Error", action + "");
+                            moveRoom(roomList[currentRoom.doors[doorVal]]);
+                            switch (doorVal) {
+                                case 0:
+                                    playerPos = [7, 4];
+                                    break;
+                                case 1:
+                                    playerPos = [4, 1];
+                                    break;
+                                case 2:
+                                    playerPos = [1, 4];
+                                    break;
+                                case 3:
+                                    playerPos = [4, 7];
+                                    break;
+                            }
+                            break;
+                        default:
+                            showNotification("Error", newPos[0] + " " + newPos[1] + "\n" + action);
+                            break;
+                    }
+                })
+                .then(ctx.sync);
+        });
     }
 
     //Helper function for moving the player icon and updating the player position
@@ -428,17 +415,19 @@
         ];
         let startRoomTitle = "Lobby of Freedom";
         let startRoomDesc = "Three keys bar this door,\nThree keys, and not one more\nI challenge thee to find them,\nI, the great Wizard weNnoR!";
-        let startRoom = new room(startTiles, [16, -1, 2, -1], startRoomTitle, startRoomDesc, startRoomItems);
+        let startRoom = new room(startTiles, [16, -1, 1, -1], startRoomTitle, startRoomDesc, startRoomItems);
         roomList.push(startRoom);
 
         let roomTwoFourTiles = [
-            [0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 1, 1, 1, 0, 0],
-            [0, 0, 1, 0, 1, 0, 0],
-            [0, 0, 1, 0, 1, 0, 0],
-            [0, 0, 1, 0, 1, 0, 0],
-            [0, 0, 1, 1, 1, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 0, 0, 0, 1, 0, 0, 0, 4],
+            [4, 0, 0, 1, 1, 1, 0, 0, 4],
+            [4, 0, 0, 1, 0, 1, 0, 0, 4],
+            [4, 0, 0, 1, 0, 1, 0, 0, 4],
+            [4, 0, 0, 1, 0, 1, 0, 0, 4],
+            [4, 0, 0, 1, 1, 1, 0, 0, 4],
+            [4, 0, 0, 0, 1, 0, 0, 0, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
         let twoFourItems = [];
         let twoFourTitle = "Salvation Bridge";
@@ -447,13 +436,15 @@
         roomList.push(roomTwoFour);
 
         let lonelyIslandTiles = [
-            [3, 3, 3, 3, 3, 3, 3],
-            [3, 3, 3, 3, 3, 3, 3],
-            [3, 3, 2, 2, 2, 3, 3],
-            [3, 3, 2, 2, 2, 3, 2],
-            [3, 3, 2, 2, 2, 3, 3],
-            [3, 3, 3, 3, 3, 3, 3],
-            [3, 3, 3, 3, 3, 3, 3],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [4, 3, 3, 2, 2, 2, 3, 3, 4],
+            [4, 3, 3, 2, 2, 2, 3, 2, 5],
+            [4, 3, 3, 2, 2, 2, 3, 3, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let lonelyIslandItems = [
             {
@@ -468,13 +459,15 @@
         roomList.push(lonelyIslandRoom);
 
         let tRoomTiles = [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [2, 2, 1, 1, 1, 1, 1],
-            [0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 0, 0, 0, 0, 0, 0, 0, 4],
+            [4, 0, 0, 0, 0, 0, 0, 0, 4],
+            [4, 0, 0, 0, 0, 0, 0, 0, 4],
+            [5, 2, 2, 1, 1, 1, 1, 1, 5],
+            [4, 0, 0, 0, 1, 0, 0, 0, 4],
+            [4, 0, 0, 0, 1, 0, 0, 0, 4],
+            [4, 0, 0, 0, 1, 0, 0, 0, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
         let tRoomItems = [];
         let tRoomTitle = "Intersection of M'ist Urtee";
@@ -483,28 +476,32 @@
         roomList.push(tRoom);
 
         let windyRoomTiles = [
-            [1, 1, 1, 3, 1, 1, 1],
-            [1, 3, 1, 3, 1, 3, 1],
-            [1, 3, 1, 3, 1, 3, 1],
-            [1, 3, 1, 3, 1, 3, 1],
-            [1, 3, 1, 3, 1, 3, 1],
-            [1, 3, 1, 3, 1, 3, 1],
-            [3, 3, 1, 1, 1, 3, 3]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 1, 1, 1, 3, 1, 1, 1, 4],
+            [4, 1, 3, 1, 3, 1, 3, 1, 4],
+            [4, 1, 3, 1, 3, 1, 3, 1, 4],
+            [5, 1, 3, 1, 3, 1, 3, 1, 5],
+            [4, 1, 3, 1, 3, 1, 3, 1, 4],
+            [4, 1, 3, 1, 3, 1, 3, 1, 4],
+            [4, 3, 3, 1, 1, 1, 3, 3, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
         let windyRoomItems = [];
         let windyRoomTitle = "Windig Zimmer";
         let windyRoomDesc = "Diese Zimmer ist sehr kurvenrich";
-        let windyRoom = new room(windyRoomTiles, [-1, 5, -1, 3], windyRoomTitle, windyRoomDesc, windyRoomItems);
+        let windyRoom = new room(windyRoomTiles, [-1, 5, 7, 3], windyRoomTitle, windyRoomDesc, windyRoomItems);
         roomList.push(windyRoom);
 
         let lungRoomTiles = [
-            [1, 1, 1, 1, 1, 1 ,1],
-            [1, 1, 0, 0, 0, 1, 1],
-            [1, 1, 0, 0, 0, 1, 1],
-            [1, 1, 0, 1, 1, 1, 1],
-            [1, 1, 0, 0, 0, 1, 1],
-            [1, 1, 0, 0, 0, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1 ,1, 4],
+            [4, 1, 1, 0, 0, 0, 1, 1, 4],
+            [4, 1, 1, 0, 0, 0, 1, 1, 4],
+            [5, 1, 1, 0, 1, 1, 1, 1, 4],
+            [4, 1, 1, 0, 0, 0, 1, 1, 4],
+            [4, 1, 1, 0, 0, 0, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
 
         let lungRoomItems = [];
@@ -514,13 +511,15 @@
         roomList.push(lungRoom);
 
         let bedRoomTiles = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 4, 1, 4, 1, 1],
-            [4, 4, 4, 1, 4, 4, 4],
-            [4, 4, 4, 1, 4, 4, 4],
-            [4, 4, 4, 1, 4, 4, 4],
-            [1, 1, 4, 1, 4, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 4, 1, 4, 1, 1, 4],
+            [4, 4, 4, 4, 1, 4, 4, 4, 4],
+            [4, 4, 4, 4, 1, 4, 4, 4, 4],
+            [4, 4, 4, 4, 1, 4, 4, 4, 4],
+            [4, 1, 1, 4, 1, 4, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
         let bedRoomItems = [
             {
@@ -550,13 +549,15 @@
         roomList.push(bedRoom);
 
         let wennorTiles = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let wennorItems = [
             {
@@ -639,13 +640,15 @@
         roomList.push(wennorRoom);
 
         let cornersTiles = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 4, 4, 1, 4, 4, 1],
-            [1, 4, 1, 1, 1, 4, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 4, 1, 1, 1, 4, 1],
-            [1, 4, 4, 1, 4, 4, 1],
-            [1, 1, 1, 1, 1, 1, 1]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 4, 4, 1, 4, 4, 1, 4],
+            [4, 1, 4, 1, 1, 1, 4, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 5],
+            [4, 1, 4, 1, 1, 1, 4, 1, 4],
+            [4, 1, 4, 4, 1, 4, 4, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
         ];
         let cornersRoomItems = [
             {
@@ -675,13 +678,15 @@
         roomList.push(cornersRoom);
 
         let lakeTiles = [
-            [1, 1, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 3, 1],
-            [1, 1, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 3, 3]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [5, 1, 1, 3, 3, 3, 3, 1, 5],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [4, 1, 1, 3, 3, 3, 3, 3, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
         ];
         let lakeItems = [];
         let lakeTitle = "Lac du Lac"; //Maybe keep this one?
@@ -690,13 +695,15 @@
         roomList.push(lakeRoom);
 
         let roundRoomTiles = [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 1, 0, 0],
-            [0, 1, 1, 0, 1, 1, 0],
-            [1, 1, 0, 0, 0, 1, 1],
-            [0, 1, 1, 0, 1, 1, 0],
-            [0, 0, 1, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 0, 0, 0, 0, 0, 0, 0, 4],
+            [4, 0, 0, 1, 1, 1, 0, 0, 4],
+            [4, 0, 1, 1, 0, 1, 1, 0, 4],
+            [5, 1, 1, 0, 0, 0, 1, 1, 4],
+            [4, 0, 1, 1, 0, 1, 1, 0, 4],
+            [4, 0, 0, 1, 1, 1, 0, 0, 4],
+            [4, 0, 0, 0, 0, 0, 0, 0, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
         ];
         let roundItems = [];
         let roundTitle = "E Pluribus Anus"; //Temp Name
@@ -705,13 +712,15 @@
         roomList.push(roundRoom);
 
         let commaRoomTiles = [
-            [0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 1, 0, 0, 1],
-            [1, 1, 0, 1, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 0, 1, 0, 0, 1],
-            [0, 0, 0, 1, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 1]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 0, 0, 0, 0, 0, 0, 1, 4],
+            [4, 0, 0, 0, 1, 0, 0, 1, 4],
+            [4, 1, 1, 0, 1, 0, 0, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 5],
+            [4, 1, 1, 0, 1, 0, 0, 1, 4],
+            [4, 0, 0, 0, 1, 0, 0, 1, 4],
+            [4, 0, 0, 0, 0, 0, 0, 1, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let commaItems = [
             {
@@ -736,27 +745,32 @@
         roomList.push(commaRoom);
 
         let skullTiles = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 1, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1],
-            [1, 1, 0, 1, 0, 1, 1],
-            [0, 1, 1, 1, 1, 1, 0],
-            [0, 1, 0, 1, 0, 1, 0]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 0, 0, 1, 0, 0, 1, 4],
+            [4, 1, 0, 0, 1, 0, 0, 1, 4],
+            [5, 1, 0, 0, 1, 0, 0, 1, 5],
+            [4, 1, 1, 0, 1, 0, 1, 1, 4],
+            [4, 0, 1, 1, 1, 1, 1, 0, 4],
+            [4, 0, 1, 0, 1, 0, 1, 0, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let skullItems = [];
         let skullTitle = "Kingdom of the Crystal Skull"; //Temp name
         let skullDesc = "";
         let skullRoom = new room(skullTiles, [6, 13, -1, 11], skullTitle, skullDesc, skullItems);
+        roomList.push(skullRoom);
 
         let bunnyEarTiles = [
-            [1, 1, 1, 0, 1, 1, 1],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 1, 1, 1, 1, 0]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 1, 1, 1, 0, 1, 1, 1, 4],
+            [4, 1, 0, 1, 0, 1, 0, 1, 4],
+            [4, 1, 0, 1, 0, 1, 0, 1, 4],
+            [5, 1, 0, 1, 0, 1, 0, 1, 5],
+            [4, 1, 0, 1, 0, 1, 0, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 0, 1, 1, 1, 1, 1, 0, 4],
+            [4, 4, 4, 4, 5, 4, 4, 4, 4]
         ];
         let bunnyItems = [];
         let bunnyTitle = "Hoppy Brewery"; //Temp name
@@ -765,13 +779,15 @@
         roomList.push(bunnyRoom);
 
         let torchIslandTiles = [
-            [3, 3, 1, 1, 1, 3, 3],
-            [3, 3, 1, 1, 1, 3, 3],
-            [3, 3, 3, 3, 3, 3, 3],
-            [1, 1, 3, 3, 3, 1, 1],
-            [3, 3, 3, 3, 3, 3, 3],
-            [3, 3, 1, 1, 1, 3, 3],
-            [3, 3, 1, 1, 1, 3, 3]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 3, 3, 1, 1, 1, 3, 3, 4],
+            [4, 3, 3, 1, 1, 1, 3, 3, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [5, 1, 1, 3, 3, 3, 1, 1, 4],
+            [4, 3, 3, 3, 3, 3, 3, 3, 4],
+            [4, 3, 3, 1, 1, 1, 3, 3, 4],
+            [4, 3, 3, 1, 1, 1, 3, 3, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let torchIslandItems = [
             {
@@ -782,17 +798,19 @@
         ];
         let torchIslandTitle = "Torch Island";
         let torchIslandDesc = "";
-        let torchIslandRoom = new room(torchIslandTiles, [-1, 14, 15, 12], torchIslandTitle, torchIslandDesc, torchIslandItems);
+        let torchIslandRoom = new room(torchIslandTiles, [8, -1, -1, 13], torchIslandTitle, torchIslandDesc, torchIslandItems);
         roomList.push(torchIslandRoom);
 
         let snorkelTiles = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 3, 3, 3, 1],
-            [1, 3, 3, 3, 3, 3, 1],
-            [1, 3, 3, 3, 3, 3, 1],
-            [1, 3, 3, 3, 3, 3, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 1, 1, 1, 0, 0]
+            [4, 4, 4, 4, 5, 4, 4, 4, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 1, 3, 3, 3, 3, 3, 1, 4],
+            [4, 1, 3, 3, 3, 3, 3, 1, 4],
+            [4, 1, 3, 3, 3, 3, 3, 1, 4],
+            [4, 1, 3, 3, 3, 3, 3, 1, 4],
+            [4, 1, 1, 1, 1, 1, 1, 1, 4],
+            [4, 0, 0, 1, 1, 1, 0, 0, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let snorkelItems = [
             {
