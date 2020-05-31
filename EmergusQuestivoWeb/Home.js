@@ -14,21 +14,13 @@
         }
     }
 
-    //let startTiles = [
-    //    ['f', 'f', 'f', 'c', 'f', 'f', 'k'],
-    //    ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-    //    ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-    //    ['f', 'c', 'f', 'c', 'f', 'c', 'f'],
-    //    ['f', 'c', 'p', 'c', 'f', 'c', 'f'],
-    //    ['w', 'f', 'f', 'f', 'f', 'f', 'w'],
-    //    ['w', 'w', 'w', 'w', 'w', 'w', 'w']
-    //];
-
-    //var startRoom = new room(startTiles, [true, true, false, true], "Start Room");
-
     //Tracking the player icon's position
     var playerPos = [3, 4];
+
+    //Array list of room objects
     var roomList = [];
+
+    //Tracks the current active room
     var currentRoom = null;
 
     // The initialize function must be run each time a new page is loaded.
@@ -53,7 +45,6 @@
             //loadSampleData();
             currentRoom = roomList[0];
             moveRoom(currentRoom);
-            //Set player location
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
             $('#button-text').text("Show me Potato Salad!");
@@ -100,14 +91,6 @@
             currentRoom = newRoom;
 
             return ctx.sync();
-            //return context.sync()
-            //    .then(function () {
-            //        if (sheets.items.length === 1) {
-            //            console.log("Can't delete the last sheet");
-            //        } else {
-            //            currentSheet.delete();
-            //        }
-            //    });
         });
     }
 
@@ -130,83 +113,87 @@
         }).catch(errorHandler);
     }
 
+    function populateItems(newRoom)
+    {
+        console.log(newRoom);
+        Excel.run(function (ctx)
+        {
+            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+            var cellRange = sheet.getRange("c3:i9");
+            cellRange.load("value");
+
+            return ctx.sync(newRoom).then(function (newRoom)
+            {
+                console.log(newRoom.items);
+                newRoom.items.forEach(function (itemEntry)
+                {
+                    console.log(itemEntry.row + ',' + itemEntry.col);
+                    console.log(cellRange.getCell(itemEntry.row, itemEntry.col));
+                    cellRange.getCell(itemEntry.row, itemEntry.col).values = itemEntry.item;
+                });
+            }).then(ctx.sync);
+        }).catch(errorHandler);
+    }
+
     //Render rooms with a 2 cell pad on top and left sides (top left room edge starts at Row 3, Column C)
     function roomRender(newRoom) {
-        //newRoom = roomList[0];
-
         Excel.run(function (ctx) {
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-            //var wallRange = sheet.getRange("b2:j10");
-            //wallRange.load("value, rowCount, columnCount");
-            //c3:i9
-
             var cellRange = sheet.getRange("b2:j10");
             cellRange.load("value, rowCount, columnCount");
 
             return ctx.sync().then(function () {
-                //wallRange.format.fill.color = "SaddleBrown"; //#8B4513
-
-                //if (newRoom.doors[0] >= 0) {
-                //    wallRange.getCell(0, 4).format.fill.color = "Orange"; //#FFA500
-                //}
-                //if (newRoom.doors[1] >= 0) {
-                //    wallRange.getCell(4, 8).format.fill.color = "Orange";
-                //}
-                //if (newRoom.doors[2] >= 0) {
-                //    wallRange.getCell(8, 4).format.fill.color = "Orange";
-                //}
-                //if (newRoom.doors[3] >= 0) {
-                //    wallRange.getCell(4, 0).format.fill.color = "Orange";
-                //}
-
                 for (var i = 0; i < cellRange.rowCount; i++) {
-                    for (var j = 0; j < cellRange.columnCount; j++) {
+                    for (var j = 0; j < cellRange.columnCount; j++)
+                    {
+                        //Get reference to current cell
+                        var currentCell = cellRange.getCell(i, j);
+
+                        //Empties cell value during render
+                        if (currentCell.value != '')
+                        {
+                            currentCell.values = '';
+                        }
+
                         switch (newRoom.tiles[i][j]) {
                             case 0:
-                                cellRange.getCell(i, j).format.fill.color = "Black";
+                                currentCell.format.fill.color = "Black";
                                 break;
                             case 1:
-                                cellRange.getCell(i, j).format.fill.color = "LightGrey"; //#D3D3D3
+                                currentCell.format.fill.color = "LightGrey"; //#D3D3D3
                                 break;
                             case 2:
-                                cellRange.getCell(i, j).format.fill.color = "AntiqueWhite"; //#FAEBD7
+                                currentCell.format.fill.color = "AntiqueWhite"; //#FAEBD7
                                 break;
                             case 3:
-                                cellRange.getCell(i, j).format.fill.color = "DodgerBlue"; //#1E90FF
+                                currentCell.format.fill.color = "DodgerBlue"; //#1E90FF
                                 break;
                             case 4:
-                                cellRange.getCell(i, j).format.fill.color = "SaddleBrown"; //#8B4513
+                                currentCell.format.fill.color = "SaddleBrown"; //#8B4513
                                 break;
                             case 5:
-                                cellRange.getCell(i, j).format.fill.color = "Yellow"; //#FFFF00
+                                currentCell.format.fill.color = "Yellow"; //#FFFF00
                                 break;
-                            case 'k':
-                                cellRange.getCell(i, j).format.fill.color = "brown";
-                                cellRange.getCell(i, j).values = 'ᚩ';
-                                break;
-                            case 'p':
-                                cellRange.getCell(i, j).format.fill.color = "brown";
-                                cellRange.getCell(i, j).values = '☺';
-
-                                //Update player's position
-                                playerPos[0] = i;
-                                playerPos[1] = j;
-                                //showNotification("Position: " + playerPos[0] + ", " + playerPos[1]);
+                            case 6:
+                                currentCell.format.fill.color = "Purple" //#800080
                                 break;
                             default:
-                                cellRange.getCell(i, j).format.fill.color = "black";
+                                currentCell.format.fill.color = "black";
                                 break;
                         }
                     }
-
-                    //Display the player
-                    cellRange.getCell(playerPos[0], playerPos[1]).values = '☺';
                 }
-            }).then(ctx.sync);
+
+                //Display the player
+                cellRange.getCell(playerPos[0], playerPos[1]).values = '☺';
+            }).then(populateItems(newRoom)).then(ctx.sync);
                 
         }).catch(errorHandler);
     }
 
+    //Handles player movement checks and room transition checks
+    //If tiles are "Floor" or "Sand" coloured, player icon move is applied
+    //If tiles are a "Door" tile, move room is applied
     function move(direction, currentRoom) {
         var newPos = [-1, -1];
         var doorVal = -1;
@@ -330,43 +317,8 @@
         .catch(errorHandler);
     }
 
-    function hightlightHighestValue() {
-        // Run a batch operation against the Excel object model
-        Excel.run(function (ctx) {
-            // Create a proxy object for the selected range and load its properties
-            var sourceRange = ctx.workbook.getSelectedRange().load("values, rowCount, columnCount");
-
-            // Run the queued-up command, and return a promise to indicate task completion
-            return ctx.sync()
-                .then(function () {
-                    var highestRow = 0;
-                    var highestCol = 0;
-                    var highestValue = sourceRange.values[0][0];
-
-                    // Find the cell to highlight
-                    for (var i = 0; i < sourceRange.rowCount; i++) {
-                        for (var j = 0; j < sourceRange.columnCount; j++) {
-                            if (!isNaN(sourceRange.values[i][j]) && sourceRange.values[i][j] > highestValue) {
-                                highestRow = i;
-                                highestCol = j;
-                                highestValue = sourceRange.values[i][j];
-                            }
-                        }
-                    }
-
-                    cellToHighlight = sourceRange.getCell(highestRow, highestCol);
-                    sourceRange.worksheet.getUsedRange().format.fill.clear();
-                    sourceRange.worksheet.getUsedRange().format.font.bold = false;
-
-                    // Highlight the cell
-                    cellToHighlight.format.fill.color = "orange";
-                    cellToHighlight.format.font.bold = true;
-                })
-                .then(ctx.sync);
-        })
-        .catch(errorHandler);
-    }
-
+    //Function used to create all room tiles, their titles, descriptions, and item lists. Adds the rooms to the roomList
+    //Called when application/game restarts
     function makeRooms() {
 
         roomList = [];
@@ -378,10 +330,11 @@
          *  3 = Water tile
          *  4 = Wall tile
          *  5 = Door tile
+         *  6 = Main Exit Tile
          */
 
         let startTiles = [
-            [4, 4, 4, 5, 5, 5, 4, 4, 4],
+            [4, 4, 4, 6, 6, 6, 4, 4, 4],
             [4, 1, 1, 1, 1, 1, 1, 1, 4],
             [4, 1, 1, 1, 1, 1, 1, 1, 4],
             [4, 1, 1, 1, 1, 1, 1, 1, 4],
@@ -409,7 +362,7 @@
             },
             {
                 "item": '☻',
-                "row": 1,
+                "row": 3,
                 "col": 5
             }
         ];
