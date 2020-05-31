@@ -51,6 +51,7 @@
             currentRoom = roomList[0];
             moveRoom(currentRoom);
             hidden = false;
+            inventory = [];
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
             $('#btn-boss-text').text("Something something boss");
@@ -125,7 +126,6 @@
             //currentSheet.delete();
             setCellSizes();
 
-
             return ctx.sync().then(function ()
             {
                 currentSheet.name = newRoom.title;
@@ -152,27 +152,6 @@
             cellRange.format.font.color = "Black";
             return ctx.sync();
         }).catch(errorHandler);
-    }
-
-    function populateItems(currentRoom)
-    {
-        if (currentRoom.items.length > 0)
-        {
-            Excel.run(function (ctx)
-            {
-                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-                var cellRange = sheet.getRange("c3:i9");
-                cellRange.load("value");
-
-                return ctx.sync(currentRoom).then(function (currentRoom)
-                {
-                    currentRoom.items.forEach(function (itemEntry)
-                    {
-                        cellRange.getCell(itemEntry.row, itemEntry.col).values = itemEntry.item;
-                    });
-                }).then(ctx.sync);
-            }).catch(errorHandler);
-        }
     }
 
     //Render rooms with a 2 cell pad on top and left sides (top left room edge starts at Row 3, Column C)
