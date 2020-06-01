@@ -38,7 +38,7 @@
             
             // If not using Excel 2016, use fallback logic.
             if (!Office.context.requirements.isSetSupported('ExcelApi', '1.1')) {
-                $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (ᚩ)");
+                $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (F) to open the door to freedom!");
                 $('#button-text').text("weNnoR!");
                 $('#button-desc').text("weNnoR!!!!");
                 $('#highlight-button').click(roomRender);
@@ -54,7 +54,7 @@
             inventory = [];
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
-            $('#btn-boss-text').text("Hide! Ron's Coming!");
+            $('#btn-boss-text').text("Hide! Ron is coming!");
 
             $('#btn-up-text').text("Up");
             $('#btn-up').click(function () {
@@ -82,6 +82,10 @@
             $('#controlDiv > div > button').css("padding", "0.25em");
             $('#controlDiv > div > button').css("margin", "0.25em");
 
+            $('#descriptionText').css("font-size", "1.25em");
+            $('#invText').css("font-size", "1.25em");
+            $('#invText').css("font-weight", "bold");
+
             // Add a click event handler for the highlight button.
             $('#btn-boss').click(function ()
             {
@@ -95,6 +99,7 @@
 
                         var currentSheet = ctx.workbook.worksheets.getActiveWorksheet();
                         currentSheet.activate();
+                        makeTable();
                         currentSheet.visibility = Excel.SheetVisibility.hidden
                     }
                     else
@@ -108,9 +113,82 @@
                     return ctx.sync();
                 }).catch(errorHandler);
             });
-            
         });
     };
+
+    //Creates and populates a table of students and their marks (for the "hide from Ron" page)
+    function makeTable()
+    {
+        Excel.run(function (ctx)
+        {
+            var sheet = ctx.workbook.worksheets.getItem("WORK");
+            var marksTable = sheet.tables.add("A1:F1", true);
+            marksTable.name = "Marks";
+
+            //The header for the table
+            marksTable.getHeaderRowRange().values = [["Student", "Assign1", "Assign2", "Midterm", "Final", "Average"]];
+
+            //The completely accurate classlist
+            var namesList = [
+                "Anthony Smith",
+                "Kyle Wei",
+                "Evan Knouse",
+                "Rick Caron",
+                "Joel Sipes",
+                "Matthew Smith",
+                "Jon Ronn",
+                "Jessie Smith",
+                "Jann the Man",
+                "Nathan Kappel",
+                "Nathan Balaniuk",
+                "Brennan Balaniuk",
+                "Bubba Chabot",
+                "Aaron Atkinson",
+                "Carson Kearns",
+                "Simon Gilmour",
+                "Hugh Ullrich",
+                "Jordan Knodel",
+                "Matthew Heagy",
+                "Brett Hickie",
+                "Tara Epp",
+                "Logan Olfert",
+                "Kory Prior",
+                "Ronald MacDonald",
+                "Steve McQueen",
+                "Alan Turing"
+            ];
+
+            //Assign the marks to the table
+            for (var i = 0; i < 25; i++)
+            {
+                //Determine the marks
+                let marks = [Math.random() * 100, Math.random() * 100, Math.random() * 100, Math.random() * 100];
+                //Determine the average
+                let avg = (marks[0] + marks[1] + marks[2] + marks[3]) / 4.0;
+                //add them to the table
+                marksTable.rows.add(null, [[namesList[i], marks[0], marks[1], marks[2], marks[3], avg]]);
+            }
+
+            //Autofit the column widths
+            if (Office.context.requirements.isSetSupported("ExcelApi", "1.2"))
+            {
+                sheet.getUsedRange().format.autofitColumns();
+                sheet.getUsedRange().format.autofitRows();
+            }
+
+            //Sort the marks by first name
+            var sortRange = marksTable.getDataBodyRange();
+
+            sortRange.sort.apply([
+                {
+                    key: 0,
+                    ascending: true,
+                }
+            ]);
+
+            return ctx.sync();
+        });
+    }
 
     //Changing the current room.
     function moveRoom(newRoom) {
@@ -122,8 +200,16 @@
             sheets.load("items/name");
             var currentSheet = ctx.workbook.worksheets.getActiveWorksheet();
             currentSheet.load("name");
+            $('#roomTitle').text(newRoom.title);
+            console.log(newRoom.description);
+            $('#roomDesc').html(newRoom.description);
             //newSheet.activate();
             //currentSheet.delete();
+            currentSheet.onSelectionChanged.add(function (event)
+            {
+                $('#descriptionText').val("I sure hope you aren't trying to cheat");
+            });
+
             setCellSizes();
 
             return ctx.sync().then(function ()
@@ -197,7 +283,10 @@
                                 currentCell.format.fill.color = "Yellow"; //#FFFF00
                                 break;
                             case 6:
-                                currentCell.format.fill.color = "Purple" //#800080
+                                currentCell.format.fill.color = "Purple"; //#800080
+                                break;
+                            case 7:
+                                currentCell.format.fill.color = "GreenYellow";
                                 break;
                             default:
                                 currentCell.format.fill.color = "black";
@@ -273,13 +362,46 @@
                     }
                     else
                     {
-                        if (cell.format.fill.color == "#D3D3D3" || cell.format.fill.color == "#FAEBD7" || cell.format.fill.color == "#1E90FF")
+                        switch (cell.format.fill.color)
                         {
+                            case "#D3D3D3":
                                 action = 0;
-                        }
-                        else if (cell.format.fill.color == "#FFFF00")
-                        {
-                            action = 1;
+                                break;
+                            case "#FAEBD7":
+                                action = 0;
+                                break;
+                            case "#FFFF00":
+                                action = 1;
+                                break;
+                            case "#1E90FF":
+                                if ($('#invText').val().includes("J"))
+                                {
+                                    action = 3;
+                                    $('#descriptionText').val("Swimming!");
+                                }
+                                else
+                                {
+                                    $('#descriptionText').val("You'd likely run out of breath before you reached the other side");
+                                }
+                                break;
+                            case "#800080":
+                                let keyCount = 0;
+                                let keysFound = $('#invText').val().match(/F/g);
+
+                                if (keysFound != null)
+                                {
+                                    keyCount = keysFound.length;
+                                }
+
+                                if (keyCount < 3)
+                                {
+                                    $('#descriptionText').val("Large, stone, ornate doors bar your route to freedom. As you inspect the door you find three keyholes, and many long dried, bloody scratches marks");
+                                }
+                                else
+                                {
+                                    action = 1;
+                                }
+                                break;
                         }
                     }
                         
@@ -309,8 +431,11 @@
                         case 2:
                             interact(cell.values[0], newPos);
                             break;
+                        case 3:
+                            movePlayerIcon(newPos[0], newPos[1]);
+                            $('#descriptionText').val("Swimming!");
+                            break;
                         default:
-                            showNotification("Error", newPos[0] + " " + newPos[1] + "\n" + action);
                             break;
                     }
                 })
@@ -323,10 +448,11 @@
         let sDesc = "";
         let sInv = $('#invText').val();
         let bRemove = false;
+        let bWennoR = false;
         switch (item[0])
         {
             case '☺':
-                sDesc = "An aspiring wizard who looks terribly stressed and sleep deprived.";
+                sDesc = "An aspiring wizard who looks terribly stressed and sleep deprived. Listening closely, you hear them mumble \"Tsc fo daeh eht si weNnoR\". Spooky stuff.";
                 break;
             case '☻':
                 sDesc = "A stone statue of an older wizard clothed in long robes.";
@@ -335,12 +461,11 @@
                 sDesc = "A wooden torch with a bright flame illuminating the surrounding area";
                 break;
             case 'F':
-                sDesc = "A heavy iron key with strange markings engraved into it";
                 sInv += item[0] + " ";
                 bRemove = true;
                 break;
             case 'J':
-                sDesc = "A set of goggles and a long not-plastic tube with a seal around one end. This would be useful for breathing underwater if you could swim";
+                sDesc = "A set of goggles and a long not-plastic tube with a seal around one end. This could be useful if you need to breathe underwater";
                 sInv += item[0] + " ";
                 bRemove = true;
                 break;
@@ -348,7 +473,7 @@
                 sDesc = "Long, grey, and covered in drawings. Your standard classroom table";
                 break;
             case 'W':
-                sDesc = "A tall, bespectacled man wearing grey robes. This must be Grand Wizard weNnoR";
+                sDesc = "A tall, bespectacled man wearing grey robes. This must be Grand Wizard weNnoR. As you approach him, he asks the class \"What's the difference between a kiss-ass and a brown-noser?\"";
                 break;
             case '∩':
                 sDesc = "A wooden bed. It's not naptime yet!"
@@ -356,10 +481,26 @@
             default:
                 break;
         }
-        $('#descriptionText').val(sDesc);
+        
         if (bRemove)
         {
+            let keyMatch = sInv.match(/F/g);
+            console.log(keyMatch);
+            var itemArray = currentRoom.items.filter((it) => it.item != "F" && it.item != "J");
+            currentRoom.items = itemArray;
+            //Key count check for unlocking weNnoR's room
+            if (keyMatch != null && keyMatch.length >= 3)
+            {
+                roomList[4].tiles[8][4] = 5;
+                sDesc = "As you pick up the final key, you hear a loud CLANK from somewhere in the labyrinth. Something else may have opened which wasn't there before";
+            }
+            else
+            {
+                sDesc = "A heavy iron key with strange markings engraved into it";
+            }
+
             $('#invText').val(sInv);
+            
             Excel.run(function (ctx)
             {
                 var sheet = ctx.workbook.worksheets.getActiveWorksheet();
@@ -373,7 +514,8 @@
                 }).then(ctx.sync);
             }).catch(errorHandler);
         }
-        
+
+        $('#descriptionText').val(sDesc);
     }
 
     //Helper function for moving the player icon and updating the player position
@@ -391,27 +533,6 @@
         }).catch(errorHandler);
     }
 
-    // Save this for the "Ron's Coming!" button
-    function loadSampleData() {
-        var values = [
-            [Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000)],
-            [Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000)],
-            [Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000)]
-        ];
-
-        // Run a batch operation against the Excel object model
-        Excel.run(function (ctx) {
-            // Create a proxy object for the active sheet
-            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-            // Queue a command to write the sample data to the worksheet
-            sheet.getRange("B3:D5").values = values;
-
-            // Run the queued-up commands, and return a promise to indicate task completion
-            return ctx.sync();
-        })
-        .catch(errorHandler);
-    }
-
     //Function used to create all room tiles, their titles, descriptions, and item lists. Adds the rooms to the roomList
     //Called when application/game restarts
     function makeRooms() {
@@ -426,6 +547,7 @@
          *  4 = Wall tile
          *  5 = Door tile
          *  6 = Main Exit Tile
+         *  7 = Grass tile
          */
 
         let startTiles = [
@@ -462,7 +584,7 @@
             }
         ];
         let startRoomTitle = "Lobby of Freedom";
-        let startRoomDesc = "Three keys bar this door,\nThree keys, and not one more\nI challenge thee to find them,\nI, the great Wizard weNnoR!";
+        let startRoomDesc = "Three keys bar this door, <br\>Three keys, and not one more<br\>I challenge thee to find them,<br\>I, the great Wizard weNnoR!";
         let startRoom = new room(startTiles, [16, -1, 1, -1], startRoomTitle, startRoomDesc, startRoomItems);
         roomList.push(startRoom);
 
@@ -532,7 +654,7 @@
             [4, 1, 3, 1, 3, 1, 3, 1, 4],
             [4, 1, 3, 1, 3, 1, 3, 1, 4],
             [4, 3, 3, 1, 1, 1, 3, 3, 4],
-            [4, 4, 4, 4, 5, 4, 4, 4, 4]
+            [4, 4, 4, 4, 4, 4, 4, 4, 4]
         ];
         let windyRoomItems = [];
         let windyRoomTitle = "Windig Zimmer";
@@ -554,7 +676,7 @@
 
         let lungRoomItems = [];
         let lungRoomTitle = "Breathing Room";
-        let lungRoomDesc = "";
+        let lungRoomDesc = "Did you know 100% of people who are exposed to oxygen will die?";
         let lungRoom = new room(lungRoomTiles, [1, -1, 8, 4], lungRoomTitle, lungRoomDesc, lungRoomItems);
         roomList.push(lungRoom);
 
@@ -591,8 +713,8 @@
                 "col": 6
             }
         ];
-        let bedRoomTitle = ""; //Need a name
-        let bedRoomDesc = "";
+        let bedRoomTitle = "Alcoves"; //Need a name
+        let bedRoomDesc = "Nap pods installed by Al Co.";
         let bedRoom = new room(bedRoomTiles, [3, -1, 12, -1], bedRoomTitle, bedRoomDesc, bedRoomItems);
         roomList.push(bedRoom);
 
@@ -720,8 +842,8 @@
                 "col": 4
             }
         ];
-        let cornersRoomTitle = "Corners Room"; //MORE PUNS!
-        let cornersRoomDesc = "";
+        let cornersRoomTitle = "Corner Room";
+        let cornersRoomDesc = "It's like a room inside a room!";
         var cornersRoom = new room(cornersTiles, [5, 9, 14, -1], cornersRoomTitle, cornersRoomDesc, cornersRoomItems);
         roomList.push(cornersRoom);
 
@@ -737,7 +859,7 @@
             [4, 4, 4, 4, 4, 4, 4, 4, 4],
         ];
         let lakeItems = [];
-        let lakeTitle = "Lac du Lac"; //Maybe keep this one?
+        let lakeTitle = "Lac du Lac";
         let lakeDesc = "Moisture is the essence of wetness.";
         let lakeRoom = new room(lakeTiles, [-1, 10, -1, 8], lakeTitle, lakeDesc, lakeItems);
         roomList.push(lakeRoom);
@@ -761,7 +883,7 @@
             }
         ];
         let roundTitle = "E Pluribus Anus"; //Temp Name
-        let roundDesc = "";
+        let roundDesc = "Don't fall off. Just kidding, we didn't want to program that.";
         let roundRoom = new room(roundRoomTiles, [-1, -1, -1, 9], roundTitle, roundDesc, roundItems);
         roomList.push(roundRoom);
 
@@ -794,7 +916,7 @@
             }
         ];
         let commaTitle = "Tomb of O'xf-Ord";
-        let commaDesc = "";
+        let commaDesc = "Is it \"Let's eat grandpa\" or is it \"Let's eat, grandpa\"?";
         let commaRoom = new room(commaRoomTiles, [-1, 12, -1, -1], commaTitle, commaDesc, commaItems);
         roomList.push(commaRoom);
 
@@ -811,7 +933,7 @@
         ];
         let skullItems = [];
         let skullTitle = "Kingdom of the Crystal Skull"; //Temp name
-        let skullDesc = "";
+        let skullDesc = "They really nuked the fridge with this room";
         let skullRoom = new room(skullTiles, [6, 13, -1, 11], skullTitle, skullDesc, skullItems);
         roomList.push(skullRoom);
 
@@ -828,7 +950,7 @@
         ];
         let bunnyItems = [];
         let bunnyTitle = "Hoppy Brewery"; //Temp name
-        let bunnyDesc = "";
+        let bunnyDesc = "Hops, hops as far as the eye can see";
         let bunnyRoom = new room(bunnyEarTiles, [-1, 14, 15, 12], bunnyTitle, bunnyDesc, bunnyItems);
         roomList.push(bunnyRoom);
 
@@ -851,7 +973,7 @@
             }
         ];
         let torchIslandTitle = "Torch Island";
-        let torchIslandDesc = "";
+        let torchIslandDesc = "Did you know that water is wet?";
         let torchIslandRoom = new room(torchIslandTiles, [8, -1, -1, 13], torchIslandTitle, torchIslandDesc, torchIslandItems);
         roomList.push(torchIslandRoom);
 
@@ -874,9 +996,26 @@
             }
         ];
         let snorkelTitle = "Sanctuary of Snor'Kel";
-        let snorkelDesc = "";
+        let snorkelDesc = "No relation to Kal-El. Snor'Kel is much cooler";
         let snorkelRoom = new room(snorkelTiles, [13, -1, -1, -1], snorkelTitle, snorkelDesc, snorkelItems);
         roomList.push(snorkelRoom);
+
+        let freedomTiles = [
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7]
+        ];
+        let freedomItems = [];
+        let freedomTitle = "Outside";
+        let freedomDesc = "As the doors slowly churn open, sunlight hits your skin for the first time in two years.The light is stunning and overwhelms your eyes. Blinded, you stumble off into the unknown.";
+        let freedomRoom = new room(freedomTiles, [-1, -1, -1, -1], freedomTitle, freedomDesc, freedomItems);
+        roomList.push(freedomRoom);
 
         return roomList;
     }

@@ -32,15 +32,16 @@
 <body class="ms-Fabric" dir="ltr">
     <div id="content-main">
         <div class="padding">
-            <br />
-            <div class="ms-font-xxl ms-fontColor-neutralSecondary ms-fontWeight-semilight">Emergus Questivo</div>
-            <br />
+            <h2>Emergus Questivo</h2>
             <p class="ms-font-m-plus ms-fontColor-neutralTertiary" id="template-description"></p>
-            <br />
-            <br />
+            <div>
+                <h3 id="roomTitle"></h3>
+                <label id="roomDesc"></label>
+            </div>
+
             <div id="invDiv">
                 <h3>Inventory</h3>
-                <textarea id="invText" rows="3" cols="20" wrap="hard"></textarea>
+                <textarea id="invText" rows="3" cols="10" wrap="hard" disabled></textarea>
             </div>
             <br />
             <div id="controlDiv">
@@ -67,7 +68,7 @@
 
             <div>
                 <h3>Description</h3>
-                <textarea id="descriptionText" rows="7" cols="30" wrap="hard"></textarea>
+                <textarea id="descriptionText" rows="7" cols="25" wrap="hard" disabled></textarea>
             </div>
             <br/>
             <button class="Button Button--primary" id="btn-boss">
