@@ -54,7 +54,7 @@
             inventory = [];
 
             $("#template-description").text("Navigate your way through the Wizard weNnoR's realm. Find three keys (ᚩ)");
-            $('#btn-boss-text').text("Something something boss");
+            $('#btn-boss-text').text("Hide! Ron's Coming!");
 
             $('#btn-up-text').text("Up");
             $('#btn-up').click(function () {
@@ -261,40 +261,36 @@
             var action = -1;
             var sheet = ctx.workbook.worksheets.getActiveWorksheet();
             var cellRange = sheet.getRange("b2:j10");
-            var props = cellRange.getCellProperties({
-                format: {
-                    fill: {
-                        color: true
-                    }
-                }
-            });
+            var cell = cellRange.getCell(newPos[0], newPos[1]);
+            cell.load("values, format/fill/color");
 
             return ctx.sync()
                 .then(function ()
                 {
-                    //var cell = cellRange.getCell(newPos[0], newPos[1]);
-                    //console.log(cell.value);
-                    //if (cell.value != null && cell.value != '')
-                    //{
-                    //    action = 2;
-                    //}
-                    //else
-                    //{
-                        if (props.value[newPos[0]][newPos[1]].format.fill.color == "#D3D3D3" || props.value[newPos[0]][newPos[1]].format.fill.color == "#FAEBD7" || props.value[newPos[0]][newPos[1]].format.fill.color == "#1E90FF")
+                    if (cell.values[0] != "")
+                    {
+                        action = 2;
+                    }
+                    else
+                    {
+                        if (cell.format.fill.color == "#D3D3D3" || cell.format.fill.color == "#FAEBD7" || cell.format.fill.color == "#1E90FF")
                         {
-                            action = 0;
-                        } else if (props.value[newPos[0]][newPos[1]].format.fill.color == "#FFFF00")
+                                action = 0;
+                        }
+                        else if (cell.format.fill.color == "#FFFF00")
                         {
                             action = 1;
                         }
-                    //}
+                    }
                         
                     switch (action) {
                         case 0:
                             movePlayerIcon(newPos[0], newPos[1]);
+                            $('#descriptionText').val("");
                             break;
                         case 1:
                             moveRoom(roomList[currentRoom.doors[doorVal]]);
+                            $('#descriptionText').val("");
                             switch (doorVal) {
                                 case 0:
                                     playerPos = [7, 4];
@@ -311,7 +307,7 @@
                             }
                             break;
                         case 2:
-                            interact(cell.values);
+                            interact(cell.values[0], newPos);
                             break;
                         default:
                             showNotification("Error", newPos[0] + " " + newPos[1] + "\n" + action);
@@ -322,11 +318,12 @@
         });
     }
 
-    function interact(item)
+    function interact(item, newPos)
     {
         let sDesc = "";
-
-        switch (item)
+        let sInv = $('#invText').val();
+        let bRemove = false;
+        switch (item[0])
         {
             case '☺':
                 sDesc = "An aspiring wizard who looks terribly stressed and sleep deprived.";
@@ -339,9 +336,13 @@
                 break;
             case 'F':
                 sDesc = "A heavy iron key with strange markings engraved into it";
+                sInv += item[0] + " ";
+                bRemove = true;
                 break;
             case 'J':
                 sDesc = "A set of goggles and a long not-plastic tube with a seal around one end. This would be useful for breathing underwater if you could swim";
+                sInv += item[0] + " ";
+                bRemove = true;
                 break;
             case '╤':
                 sDesc = "Long, grey, and covered in drawings. Your standard classroom table";
@@ -355,8 +356,24 @@
             default:
                 break;
         }
+        $('#descriptionText').val(sDesc);
+        if (bRemove)
+        {
+            $('#invText').val(sInv);
+            Excel.run(function (ctx)
+            {
+                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+                var cellRange = sheet.getRange("b2:j10");
 
-        $('#descriptionText').text(sDesc);
+                return ctx.sync().then(function ()
+                {
+                    cellRange.getCell(newPos[0], newPos[1]).values = '';
+
+                }).then(ctx.sync);
+            }).catch(errorHandler);
+        }
+        
     }
 
     //Helper function for moving the player icon and updating the player position
@@ -761,19 +778,19 @@
         ];
         let commaItems = [
             {
-                "item": '/',
-                "row": 1,
-                "col": 3
+                "item": 'i',
+                "row": 2,
+                "col": 0
             },
             {
-                "item": '≡',
+                "item": 'F',
                 "row": 3,
                 "col": 0
             },
             {
-                "item": '/',
-                "row": 5,
-                "col": 3
+                "item": 'i',
+                "row": 4,
+                "col": 0
             }
         ];
         let commaTitle = "Tomb of O'xf-Ord";

@@ -37,17 +37,12 @@
             <br />
             <p class="ms-font-m-plus ms-fontColor-neutralTertiary" id="template-description"></p>
             <br />
-
-            <button class="Button Button--primary" id="btn-boss">
-                <span class="Button-label" id="btn-boss-text"></span>
-            </button>
-
             <br />
             <div id="invDiv">
                 <h3>Inventory</h3>
-                <input type="text" id="invText" style="width: 15em; height:5em;"/>
+                <textarea id="invText" rows="3" cols="20" wrap="hard"></textarea>
             </div>
-            <br/>
+            <br />
             <div id="controlDiv">
                 <div>
                     <button id="btn-up">
@@ -72,9 +67,12 @@
 
             <div>
                 <h3>Description</h3>
-                <input type="text" id="descriptionText" style="width: 20em; height:7em;" />
+                <textarea id="descriptionText" rows="7" cols="30" wrap="hard"></textarea>
             </div>
-
+            <br/>
+            <button class="Button Button--primary" id="btn-boss">
+                <span class="Button-label" id="btn-boss-text"></span>
+            </button>
         </div>
     </div>
     <div class="footer">
