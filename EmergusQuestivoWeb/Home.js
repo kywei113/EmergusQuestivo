@@ -1,6 +1,12 @@
 ﻿(function () {
     "use strict";
 
+    /*
+     *  Anthony Smith - CST230
+     *  Kyle Wei - CST234
+     *  Dungeon of weNnoR
+     *  COET295
+     * */
     var cellToHighlight;
     var messageBanner;
 
@@ -38,7 +44,7 @@
             
             // If not using Excel 2016, use fallback logic.
             if (!Office.context.requirements.isSetSupported('ExcelApi', '1.1')) {
-                $("#template-description").text("Emergus Questivo. An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (F) to open the door to freedom!");
+                $("#template-description").text("An adventure through the Portal Dimension of the Wizard weNnoR. Find three keys (F) to open the door to freedom!");
                 $('#button-text').text("weNnoR!");
                 $('#button-desc').text("weNnoR!!!!");
                 $('#highlight-button').click(roomRender);
